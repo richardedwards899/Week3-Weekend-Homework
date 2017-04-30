@@ -16,15 +16,14 @@ class Customer
     INSERT INTO customers (name, funds) 
     VALUES ('#{ @name }', #{@funds}) RETURNING customer_id;"
     
-    customer_hash = SqlRunner.run(sql)[0]
-    @customer_id = customer_hash['customer_id'].to_i
+    @customer_id  = SqlRunner.run(sql)[0]['customer_id'].to_i
   end
 
   def update()
     sql = "UPDATE customers 
     SET (name, funds) 
     = ('#{@name}', #{@funds})
-    WHERE customer_id=#{@customer_id};"
+    WHERE customer_id = #{@customer_id};"
 
     SqlRunner.run(sql)
   end
@@ -34,28 +33,23 @@ class Customer
     SqlRunner.run(sql)
   end
 
-  def films()
-    sql =
-    "SELECT * FROM tickets t
-    INNER JOIN films f
-    ON f.film_id = t.film_id
-    WHERE t.customer_id = #{@customer_id};"
+  def buy_ticket(ticket)
+    @funds -= ticket.price
+    update()
+  end
 
-    # Alternative query - works the same
-    # sql = "
-    # SELECT * FROM films f
-    # INNER JOIN tickets t
-    # ON f.film_id = t.film_id
-    # WHERE t.customer_id = #{@customer_id}    
-    # "
+  def films()
+
+    sql = "
+      select f.* from tickets t
+      inner join customers c on t.customer_id = c.customer_id
+      inner join screenings s on t.screening_id = s.screening_id
+      inner join films f on s.film_id = f.film_id
+      where c.customer_id = #{@customer_id};
+    "
 
     film_hashes = SqlRunner.run(sql)
     return film_hashes.map() {|film_hash| Film.new(film_hash)}
-  end
-
-  def buy_ticket(ticket)
-    @funds -= ticket.price
-    self.update
   end
 
   def number_of_tickets()

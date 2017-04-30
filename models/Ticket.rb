@@ -2,31 +2,30 @@ require_relative("../db/sqlRunner.rb")
 
 class Ticket
 
-  attr_accessor :customer_id, :film_id, :price
+  attr_accessor :customer_id, :screening_id, :price
   attr_reader :ticket_id
 
   def initialize( options )
     @ticket_id = options['ticket_id'].to_i if options['ticket_id'] 
     @customer_id = options['customer_id'].to_i
-    @film_id = options['film_id'].to_i
+    @screening_id = options['screening_id'].to_i
     @price = options['price'].to_i
   end
 
   def save()
     sql = "
-    INSERT INTO tickets (customer_id, film_id, price) 
-    VALUES ('#{@customer_id}', '#{@film_id}', #{price}) 
+    INSERT INTO tickets (customer_id, screening_id, price) 
+    VALUES (#{@customer_id}, #{@screening_id}, #{price}) 
     RETURNING ticket_id;"
     
-    ticket_hash = SqlRunner.run(sql)[0]
-    @ticket_id = ticket_hash['ticket_id'].to_i
+    @ticket_id = SqlRunner.run(sql)[0]['ticket_id'].to_i
   end
 
   def update()
     sql = "
     UPDATE tickets 
-    SET (customer_id, film_id, price)
-    = (#{@customer_id}, #{@film_id}, #{@price})
+    SET (customer_id, screening_id, price)
+    = ( #{@customer_id}, #{@screening_id}, #{@price} )
     WHERE ticket_id = #{@ticket_id};"
 
     SqlRunner.run(sql)
